@@ -2,7 +2,9 @@
 
 This quickstart sample demonstrates how to implement a Choreography Saga in Kalix.
 
-This project contains the framework to create a Kalix service. To understand more about these components, see [Developing services](https://docs.kalix.io/services/) and check Spring-SDK [official documentation](https://docs.kalix.io/spring/index.html). Examples can be found [here](https://github.com/lightbend/kalix-jvm-sdk/tree/main/samples) in the folders with "spring" in their name.
+This project explores the usage of Event Sourced Entities, Value Entities and Actions.  
+To understand more about these components, see [Developing services](https://docs.kalix.io/services/) and check 
+Java-SDK [official documentation](https://docs.kalix.io/java/index.html). 
 
 ## What is a Choreography Saga?
 
@@ -21,26 +23,22 @@ This example implements a choreography that manages transactions across two enti
 
 ## Cross Entity Field Uniqueness
 
-A common challenge in building event-driven applications is achieving consistency across more than one entity.
+A common challenge in building distributed applications is achieving consistency across more than one entity.
 Each entity lives in its own isolated transactional boundary, and it is not possible to execute a single transaction that spans multiple entities. 
-This is an important property of event-driven architectures as it enables scalability and resilience. 
+This is an important property of distributed architectures as it enables scalability and resilience. 
 For example, Kalix can instantiate the entity instances on different nodes to spread the load, but that's only possible if each entity is independent of the others.
 
 However, in some situations it may be necessary for a particular entity field to be unique across all entities. For
 example, a user may have a unique identifier (e.g. social security number) that can be used as a unique entity ID,
 but may also have an email address that needs to be unique across all users in the system.
 
-A **Choreography Saga** can be implemented as a solution to this challenge. Besides the `UserEntity` we can implement a second
-entity to act as a barrier. This entity, called `UniqueEmailEntity`, will be responsible for
-Ensuring that each email address is associated with only one user.  Its unique ID will be the email address itself
-which provides strong consistency guarantees. 
+A **Choreography Saga** can be implemented as a solution to this challenge. In addition to the `UserEntity`, we can 
+implement a second entity to act as a barrier. This entity, called the `UniqueEmailEntity`, will be responsible for ensuring that each email address is associated with only one user.  The unique ID of the `UniqueEmailEntity` will be the email address itself. Thus, we can guarantee that there is only one instance of this entity per email.
 
-When a request to create a new `UserEntity` is received, we first check if the email address is in use by first trying to 
-reserve it using the entity barrier, the `UniqueEmailEntity`. If it's not already in use, we proceed to create 
-the `UserEntity'. Once the `UserEntity` has been created, the `UniqueEmailEntity` is marked as CONFIRMED.
+When a request to create a new `UserEntity` is received, we first check if the email address is in use by first 
+trying to reserve it using the barrier, the `UniqueEmailEntity`. If it's not already in use, we proceed to create the `UserEntity`. Once the `UserEntity` has been created, the `UniqueEmailEntity` is marked as CONFIRMED.
 
 If the email address is already in use, the request to create the `UserEntity` will fail.
-
 
 ### Successful Scenario
 
@@ -69,8 +67,8 @@ The failure scenario is illustrated in the following diagram:
    1. in the background, the `UniqueEmailSubscriber` Action listens to state changes from `UniqueEmailEntity`
    2. when it detects that an email was reserved it schedules a timer to un-reserve it after a certain amount of time. 
    3. when the timer fires, the email is un-reserved if the `UniqueEmailEntity` is still in RESERVED state.
-2. it will then create the User, but it fails. As such, the email will never be confirmed, but the timer will 
-   unlock it.
+2. then it tries to create the User, but it fails. As such, the email will never be confirmed, but the timer 
+   will unlock it.
 
 > [!NOTE]
 > Everything on the side of the `UniqueEmailSubscriber` is happening in the background and independent of the success or failure of the User creation.
@@ -81,16 +79,13 @@ Now that we have covered the failure scenario, we can have a look at the full pi
 
 ![Full Successful Flow](flow-full.png?raw=true)
 
-We need to understand that `UniqueEmailSubscriber` and `UserEventsSubscriber` are two autonomous components that once deployed, will run in the background and do their job. 
+We need to understand that `UniqueEmailSubscriber` and `UserEventsSubscriber` are two autonomous components that
+once deployed, run in the background and do their job whenever they receive an event or state change notification.
 
-In the case that a User is successfully created, the `UniqueEmailSubscriber` will still react to the 
-`UniqueEmailEntity` reservation and therefore will still schedule a timer to un-reserve it. However, since the User 
-was created, the `UserEventsSubscriber` will modify the `UniqueEmailEntity` state to CONFIRMED and that will trigger 
-another state change notification to `UniqueEmailSubscriber` which will cancel the timer.
+In the case where a user is successfully created, the `UniqueEmailSubscriber` will still react to the `UniqueEmailEntity` reservation and therefore still schedule a timer to un-reserve it. However, since the user has been created, the `UserEventsSubscriber` will change the `UniqueEmailEntity` state to CONFIRMED and this will trigger another state change notification to the `UniqueEmailSubscriber` which will cancel the timer.
 
-Although simple, this example demonstrates how to implement a **Choreography Saga** in Kalix. We have two entities that 
-influences each other and we have two Actions that are listening to events and state changes and guaranteeing that 
-the whole converges to a consistent state.
+Although simple, this example shows how to implement a **Choreography Saga** in Kalix. We have two entities that 
+influence each other, and we have two actions that listen to events and state changes and guarantee that the whole converges to a consistent state.
 
 ## Running and exercising this sample
 
@@ -102,11 +97,8 @@ mvn kalix:runAll -Demail.confirmation.timeout=10s
 
 This command will start your Kalix service and a companion Kalix Runtime as configured in [docker-compose.yml](./docker-compose.yml) file.
 
-The `email.confirmation.timeout` setting is used to configure the timer timeout to fire after 10 seconds. In other 
-words, if the email is not confirmed within this time, it will be un-reserved
-The default value for this setting is 2 hours (see application.conf file). For demo purpose, it's convenient to set it 
-to a few seconds, so that 
-we don't have to wait. 
+The `email.confirmation.timeout` setting is used to configure the timer to fire after 10 seconds. In other words, if 
+the email is not confirmed within this time, it will be released. The default value for this setting is 2 hours (see the `src/resources/application.conf` file). For demo purposes, it's convenient to set it to a few seconds so we don't have to wait.
 
 ### create user identified by 001
 
@@ -164,7 +156,7 @@ Change the email address of user 001 to `john.doe@acme.com`. Inspect the code to
 ```shell
 curl localhost:9000/api/users/001/change-email \
   --header "Content-Type: application/json" \
-  -XPOST \
+  -XPUT \
   --data '{ "newEmail": "john.doe@acme.com" }'
 ```
 
