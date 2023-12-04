@@ -64,7 +64,6 @@ public class IntegrationTest extends KalixIntegrationTestKitSupport {
     // get email once more and check it's now confirmed
     await()
       .ignoreExceptions()
-
       .atMost(timeout)
       .untilAsserted(() -> {
         var res = execute(callGetEmailInfo);
