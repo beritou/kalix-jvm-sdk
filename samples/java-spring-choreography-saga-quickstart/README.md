@@ -23,22 +23,14 @@ This example implements a choreography that manages transactions across two enti
 
 ## Cross Entity Field Uniqueness
 
-A common challenge in building distributed applications is achieving consistency across more than one entity.
-Each entity lives in its own isolated transactional boundary, and it is not possible to execute a single transaction that spans multiple entities. 
-This is an important property of distributed architectures as it enables scalability and resilience. 
-For example, Kalix can instantiate the entity instances on different nodes to spread the load, but that's only possible if each entity is independent of the others.
+A common challenge in event-sourced applications is called the _Set-Based Consistency Validation_ problem. It arises when we need to ensure that a particular field is unique across all entities in the system. For example, a user may have a unique identifier (e.g. social security number) that can be used as a unique entity ID, but may also have an email address that needs to be unique across all users in the system.
 
-However, in some situations it may be necessary for a particular entity field to be unique across all entities. For
-example, a user may have a unique identifier (e.g. social security number) that can be used as a unique entity ID,
-but may also have an email address that needs to be unique across all users in the system.
+In an event-sourced application, the events emitted by an entity are stored in a journal that is optimized for storing events payload without prior knowledge of the structure of the data. As such, it is not possible to add a unique constraint.
 
-A **Choreography Saga** can be implemented as a solution to this challenge. In addition to the `UserEntity`, we can 
-implement a second entity to act as a barrier. This entity, called the `UniqueEmailEntity`, will be responsible for ensuring that each email address is associated with only one user.  The unique ID of the `UniqueEmailEntity` will be the email address itself. Thus, we can guarantee that there is only one instance of this entity per email.
+A **Choreography Saga** can be implemented as a solution to this challenge. In addition to the `UserEntity`, we can implement a second entity to act as a barrier. This entity, called the `UniqueEmailEntity`, will be responsible for ensuring that each email address is associated with only one user.  The unique ID of the `UniqueEmailEntity` will be the email address itself. Thus, we can guarantee that there is only one instance of this entity per email.
 
-When a request to create a new `UserEntity` is received, we first check if the email address is in use by first 
-trying to reserve it using the barrier, the `UniqueEmailEntity`. If it's not already in use, we proceed to create the `UserEntity`. Once the `UserEntity` has been created, the `UniqueEmailEntity` is marked as CONFIRMED.
-
-If the email address is already in use, the request to create the `UserEntity` will fail.
+When a request to create a new `UserEntity` is received, we first attempt to reserve the email address using the 
+`UniqueEmailEntity`. If it's not already in use, we proceed to create the `UserEntity`. Once the `UserEntity` has been created, the `UniqueEmailEntity` is marked as CONFIRMED. If the email address is already in use, the request to create the `UserEntity` will fail.
 
 ### Successful Scenario
 
