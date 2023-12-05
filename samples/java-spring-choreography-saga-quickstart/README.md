@@ -25,7 +25,7 @@ This example implements a choreography that manages transactions across two enti
 
 A common challenge in event-sourced applications is called the _Set-Based Consistency Validation_ problem. It arises when we need to ensure that a particular field is unique across all entities in the system. For example, a user may have a unique identifier (e.g. social security number) that can be used as a unique entity ID, but may also have an email address that needs to be unique across all users in the system.
 
-In an event-sourced application, the events emitted by an entity are stored in a journal that is optimized for storing events payload without prior knowledge of the structure of the data. As such, it is not possible to add a unique constraint.
+In an event-sourced application, the events emitted by an entity are stored in a journal optimised to store the payload of the event, without any prior knowledge of the structure of the data. As such, it is not possible to add a unique constraint.
 
 A **Choreography Saga** can be implemented as a solution to this challenge. In addition to the `UserEntity`, we can implement a second entity to act as a barrier. This entity, called the `UniqueEmailEntity`, will be responsible for ensuring that each email address is associated with only one user.  The unique ID of the `UniqueEmailEntity` will be the email address itself. Thus, we can guarantee that there is only one instance of this entity per email.
 
