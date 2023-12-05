@@ -29,8 +29,12 @@ In an event-sourced application, the events emitted by an entity are stored in a
 
 A **Choreography Saga** can be implemented as a solution to this challenge. In addition to the `UserEntity`, we can implement a second entity to act as a barrier. This entity, called the `UniqueEmailEntity`, will be responsible for ensuring that each email address is associated with only one user.  The unique ID of the `UniqueEmailEntity` will be the email address itself. Thus, we can guarantee that there is only one instance of this entity per email.
 
-When a request to create a new `UserEntity` is received, we first attempt to reserve the email address using the 
-`UniqueEmailEntity`. If it's not already in use, we proceed to create the `UserEntity`. Once the `UserEntity` has been created, the `UniqueEmailEntity` is marked as CONFIRMED. If the email address is already in use, the request to create the `UserEntity` will fail.
+When a request to create a new `UserEntity` is received, we first attempt to reserve the email address using the`UniqueEmailEntity`. If it's not already in use, we proceed to create the `UserEntity`. Once the `UserEntity` has been created, the `UniqueEmailEntity` is marked as CONFIRMED. If the email address is already in use, the request to create the `UserEntity` will fail.
+
+To achieve this behaviour, we will implement two Kalix Actions that will subscribe to events and state changes from 
+the `UserEntity` and `UniqueEmailEntity` respectively and react to them. The Actions will be responsible for 
+converging the system to a consistent state. The components will react to the facts happening in the system in an 
+autonomous way, much like performers in a choreographed dance. Hence, the name **Choreography Saga**.
 
 ### Successful Scenario
 
@@ -40,10 +44,10 @@ The sunny day scenario is illustrated in the following diagram:
 
 All incoming requests are handled by the `ApplicationController` which is implemented using a Kalix Action. 
 
-1. upon receiving a request to create a new User, the `ApplicationController` will first reserve the email.
-2. it will then create the User. 
-   1. the `UserEventsSubscriber` Action listens to the User's event 
-   2. and mark the UniqueEmail entity as soon as it 'sees' that a User has been created.
+1. Upon receiving a request to create a new User, the `ApplicationController` will first reserve the email.
+2. It will then create the User. 
+3. The `UserEventsSubscriber` Action is listening to the User's event.
+4. The `UniqueEmailEntity` is confirmed as soon as the subscriber 'sees' that a User has been created.
       
 ### Failure Scenario
 
@@ -55,12 +59,12 @@ The failure scenario is illustrated in the following diagram:
 
 ![Failure Flow](flow-failure.png?raw=true)
 
-1. upon receiving a request to create a new User, the `ApplicationController` will first reserve the email.
-   1. in the background, the `UniqueEmailSubscriber` Action listens to state changes from `UniqueEmailEntity`
-   2. when it detects that an email was reserved it schedules a timer to un-reserve it after a certain amount of time. 
-   3. when the timer fires, the email is un-reserved if the `UniqueEmailEntity` is still in RESERVED state.
-2. then it tries to create the User, but it fails. As such, the email will never be confirmed, but the timer 
-   will unlock it.
+1. Upon receiving a request to create a new User, the `ApplicationController` will first reserve the email.
+2. Then it tries to create the User, but it fails. As such, the email will never be confirmed.
+3. In the background, the `UniqueEmailSubscriber` Action is listening to state changes from `UniqueEmailEntity`.
+4. When it detects that an email has been reserved, it schedules a timer to un-reserve it after a certain amount of 
+   time.
+5. When the timer fires, the email is un-reserved if the `UniqueEmailEntity` is still in RESERVED state.
 
 > [!NOTE]
 > Everything on the side of the `UniqueEmailSubscriber` is happening in the background and independent of the success or failure of the User creation.
