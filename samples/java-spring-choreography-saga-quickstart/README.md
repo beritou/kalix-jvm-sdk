@@ -31,10 +31,7 @@ A **Choreography Saga** can be implemented as a solution to this challenge. In a
 
 When a request to create a new `UserEntity` is received, we first attempt to reserve the email address using the`UniqueEmailEntity`. If it's not already in use, we proceed to create the `UserEntity`. Once the `UserEntity` has been created, the `UniqueEmailEntity` is marked as CONFIRMED. If the email address is already in use, the request to create the `UserEntity` will fail.
 
-To achieve this behaviour, we will implement two Kalix Actions that will subscribe to events and state changes from 
-the `UserEntity` and `UniqueEmailEntity` respectively and react to them. The Actions will be responsible for 
-converging the system to a consistent state. The components will react to the facts happening in the system in an 
-autonomous way, much like performers in a choreographed dance. Hence, the name **Choreography Saga**.
+To achieve this behaviour, we will implement two Kalix Actions that will subscribe to and react to events and state changes from the `UserEntity` and `UniqueEmailEntity` respectively. The Actions will be responsible for converging the system to a consistent state. The components will react autonomously to what is happening in the system, in a similar way to the performers in a choreographed dance. Hence the name **Choreography Saga**.
 
 ### Successful Scenario
 
