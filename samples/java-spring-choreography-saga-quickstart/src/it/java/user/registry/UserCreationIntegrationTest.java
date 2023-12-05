@@ -3,8 +3,6 @@ package user.registry;
 import com.google.protobuf.any.Any;
 import kalix.javasdk.DeferredCall;
 import kalix.spring.testkit.KalixIntegrationTestKitSupport;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import user.registry.api.ApplicationController;
@@ -28,7 +26,7 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
  * (already configured and provided automatically through injection).
  */
 @SpringBootTest(classes = Main.class)
-public class IntegrationTest extends KalixIntegrationTestKitSupport {
+public class UserCreationIntegrationTest extends KalixIntegrationTestKitSupport {
 
 
   /**
