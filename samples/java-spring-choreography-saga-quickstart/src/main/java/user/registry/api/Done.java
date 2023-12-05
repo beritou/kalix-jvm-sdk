@@ -1,4 +1,4 @@
-package user.registry;
+package user.registry.api;
 
 /**
  * A type to use for acknowledging that a command was handled.

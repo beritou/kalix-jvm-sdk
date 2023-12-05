@@ -9,7 +9,7 @@ import kalix.javasdk.valueentity.ValueEntityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
-import user.registry.Done;
+import user.registry.api.Done;
 
 import java.util.Optional;
 
