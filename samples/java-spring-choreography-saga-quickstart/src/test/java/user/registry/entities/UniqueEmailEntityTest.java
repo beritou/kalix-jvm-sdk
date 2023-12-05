@@ -4,7 +4,7 @@ package user.registry.entities;
 import kalix.javasdk.testkit.ValueEntityTestKit;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class UniqueEmailEntityTest {
 
@@ -22,7 +22,7 @@ public class UniqueEmailEntityTest {
     unreserveEmail(emailTestKit);
 
     var state = emailTestKit.call(UniqueEmailEntity::getState).getReply();
-    assertTrue(state.isNotInUse());
+    assertThat(state.isNotInUse()).isTrue();
   }
 
   @Test
@@ -34,8 +34,8 @@ public class UniqueEmailEntityTest {
     // unReserving a confirmed has no effect
     unreserveEmail(emailTestKit);
     var state = emailTestKit.call(UniqueEmailEntity::getState).getReply();
-    assertTrue(state.isInUse());
-    assertTrue(state.isConfirmed());
+    assertThat(state.isInUse()).isTrue();
+    assertThat(state.isConfirmed()).isTrue();
   }
 
   @Test
@@ -55,37 +55,34 @@ public class UniqueEmailEntityTest {
 
   private static void confirmEmail(ValueEntityTestKit<UniqueEmailEntity.UniqueEmail, UniqueEmailEntity> emailTestKit) {
     var confirmedRes = emailTestKit.call(UniqueEmailEntity::confirm);
-    assertTrue(confirmedRes.isReply());
-    assertTrue(confirmedRes.stateWasUpdated());
+    assertThat(confirmedRes.isReply()).isTrue();
+    assertThat(confirmedRes.stateWasUpdated()).isTrue();
     var state = emailTestKit.call(UniqueEmailEntity::getState).getReply();
-    assertTrue(state.isConfirmed());
+    assertThat(state.isConfirmed()).isTrue();
   }
 
   private static void reserveEmail(ValueEntityTestKit<UniqueEmailEntity.UniqueEmail, UniqueEmailEntity> emailTestKit, String email, String ownerId) {
     var reserveCmd = new UniqueEmailEntity.ReserveEmail(email, ownerId);
-    var reservedRes =
-      emailTestKit.call(emailEntity -> emailEntity.reserve(reserveCmd));
-    assertTrue(reservedRes.isReply());
-    assertTrue(reservedRes.stateWasUpdated());
+    var reservedRes = emailTestKit.call(emailEntity -> emailEntity.reserve(reserveCmd));
+    assertThat(reservedRes.isReply()).isTrue();
+    assertThat(reservedRes.stateWasUpdated()).isTrue();
 
     var state = emailTestKit.call(UniqueEmailEntity::getState).getReply();
-    assertTrue(state.isReserved());
+    assertThat(state.isReserved()).isTrue();
   }
 
   private static void deleteEmail(ValueEntityTestKit<UniqueEmailEntity.UniqueEmail, UniqueEmailEntity> emailTestKit) {
-    var reservedRes =
-      emailTestKit.call(UniqueEmailEntity::delete);
-    assertTrue(reservedRes.isReply());
-    assertTrue(reservedRes.stateWasUpdated());
+    var reservedRes = emailTestKit.call(UniqueEmailEntity::delete);
+    assertThat(reservedRes.isReply()).isTrue();
+    assertThat(reservedRes.stateWasUpdated()).isTrue();
 
     var state = emailTestKit.call(UniqueEmailEntity::getState).getReply();
-    assertTrue(state.isNotInUse());
+    assertThat(state.isNotInUse()).isTrue();
   }
 
   private static void unreserveEmail(ValueEntityTestKit<UniqueEmailEntity.UniqueEmail, UniqueEmailEntity> emailTestKit) {
-    var reservedRes =
-      emailTestKit.call(UniqueEmailEntity::unReserve);
-    assertTrue(reservedRes.isReply());
+    var reservedRes = emailTestKit.call(UniqueEmailEntity::unReserve);
+    assertThat(reservedRes.isReply()).isTrue();
   }
 
 
