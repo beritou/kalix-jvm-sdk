@@ -6,7 +6,7 @@ import kalix.javasdk.annotations.Subscribe;
 import kalix.javasdk.client.ComponentClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import user.registry.api.Done;
+import user.registry.common.Done;
 import user.registry.entities.UniqueEmailEntity;
 import user.registry.entities.UserEntity;
 

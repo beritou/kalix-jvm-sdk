@@ -7,7 +7,7 @@ import kalix.javasdk.eventsourcedentity.EventSourcedEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
-import user.registry.api.Done;
+import user.registry.common.Done;
 
 import java.util.List;
 
